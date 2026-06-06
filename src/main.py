@@ -9,7 +9,9 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from utils.helpers import load_config, load_documents_from_directory, chunk_text
 from embeddings.embedding_handler import EmbeddingHandler
 from retriever.document_retriever import DocumentRetriever
+from retriever.multi_hop import MultiHopRetriever
 from generator.response_generator import ResponseGenerator
+from router.query_router import QueryRouter
 
 load_dotenv()
 
@@ -17,7 +19,7 @@ PROJECT_ROOT = Path(__file__).parent.parent
 
 
 class RAGSystem:
-    """Graph-enhanced hybrid RAG system."""
+    """Graph-enhanced hybrid RAG system with query routing and multi-hop retrieval."""
 
     def __init__(self, config_path: str = None):
         print("Initializing RAG System...")
@@ -30,7 +32,6 @@ class RAGSystem:
             model_name=self.config["embedding"]["model"]
         )
 
-        # Resolve persist_directory relative to project root
         persist_dir = str(PROJECT_ROOT / self.config["vector_store"]["persist_directory"])
 
         self.retriever = DocumentRetriever(
@@ -45,13 +46,22 @@ class RAGSystem:
             max_tokens=self.config["llm"]["max_tokens"],
         )
 
+        routing_cfg = self.config.get("routing", {})
+        self.router = QueryRouter(
+            model=routing_cfg.get("model", self.config["llm"]["model"])
+        )
+
+        multihop_cfg = self.config.get("multi_hop", {})
+        self.multi_hop = MultiHopRetriever(
+            retriever=self.retriever,
+            model=multihop_cfg.get("model", self.config["llm"]["model"]),
+            max_hops=multihop_cfg.get("max_hops", 3),
+        )
+        self.multi_hop_enabled = multihop_cfg.get("enabled", True)
+
         print("RAG System initialized.\n")
 
     def ingest_documents(self, documents_directory: str, force: bool = False) -> None:
-        """
-        Ingest documents into the vector store.
-        Skips ingestion if the collection is already populated (pass force=True to re-ingest).
-        """
         if not force and self.retriever.collection.count() > 0:
             print(
                 f"Collection already has {self.retriever.collection.count()} chunks. "
@@ -90,19 +100,48 @@ class RAGSystem:
         print(f"\nQuery: {question}")
         print("-" * 80)
 
-        retrieved_docs = self.retriever.retrieve(
-            question, top_k=self.config["retrieval"]["top_k"]
-        )
+        # --- 1. Route ---
+        route = self.router.classify(question)
+        base_top_k = self.config["retrieval"]["top_k"]
+        top_k = max(1, int(base_top_k * route["top_k_multiplier"]))
+        graph_alpha = route["graph_alpha"]
 
-        print(f"Retrieved {len(retrieved_docs)} chunks:\n")
+        print(f"Route    : {route['type'].upper()}  —  {route['reason']}")
+        print(f"Settings : top_k={top_k}  graph_alpha={graph_alpha:.2f}  multi_hop={route['needs_multi_hop']}")
+        print()
+
+        # --- 2. Retrieve ---
+        hop_trace = []
+        use_multi_hop = route["needs_multi_hop"] and self.multi_hop_enabled
+
+        if use_multi_hop:
+            print("Multi-hop retrieval:")
+            retrieved_docs, hop_trace = self.multi_hop.retrieve(
+                question, top_k=top_k, graph_alpha=graph_alpha
+            )
+        else:
+            retrieved_docs = self.retriever.retrieve(
+                question, top_k=top_k, graph_alpha=graph_alpha
+            )
+
+        # --- 3. Display retrieved chunks ---
+        print(f"\nRetrieved {len(retrieved_docs)} chunks:\n")
         for i, doc in enumerate(retrieved_docs, 1):
             rtype = doc.get("retrieval_type", "?")
             final = doc.get("final_score", doc.get("rrf_score", 0.0))
             graph = doc.get("graph_score", 0.0)
-            print(f"  [{i}] type={rtype}  final={final:.4f}  graph={graph:.2f}  source={doc['metadata']['source']}")
+            print(
+                f"  [{i}] type={rtype}  final={final:.4f}  graph={graph:.2f}"
+                f"  source={doc['metadata']['source']}"
+            )
             print(f"       {doc['document'][:150].strip()}…\n")
 
+        if hop_trace:
+            print(f"Sub-questions: {hop_trace}\n")
+
         print("-" * 80)
+
+        # --- 4. Generate ---
         return self.generator.generate_response(question, retrieved_docs)
 
 

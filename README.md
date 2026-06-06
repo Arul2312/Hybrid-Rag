@@ -7,17 +7,32 @@ A RAG (Retrieval-Augmented Generation) system that combines dense vector search,
 ```
 Query
   │
-  ├─── Vector search (ChromaDB + sentence-transformers)  ─┐
-  │                                                        ├── RRF fusion ──► candidate pool
-  ├─── BM25 keyword search                               ─┘
+  ▼
+Query Router  (LLM classifier)
+  │  classifies into: factual | comparative | relational | summarisation
+  │  sets: top_k multiplier, graph_alpha, needs_multi_hop
   │
-  ├─── Knowledge graph expansion
-  │      • BFS from top-ranked seeds (finds related chunks via shared entities)
-  │      • Entity match on query (finds chunks mentioning the same named entities)
-  │      • Adds graph-only candidates to the pool with a graph relevance score
+  ├─── Single-pass retrieval  (factual / comparative / summarisation)
+  │      │
+  │      ├── Vector search (ChromaDB + sentence-transformers)  ─┐
+  │      │                                                       ├── RRF fusion ──► candidate pool
+  │      ├── BM25 keyword search                               ─┘
+  │      │
+  │      ├── Knowledge graph expansion
+  │      │      • BFS from top-ranked seeds (related chunks via shared entities)
+  │      │      • Entity match on query terms
+  │      │
+  │      └── Re-rank: final_score = rrf_score + α × graph_score
   │
-  └─── Re-rank: final_score = rrf_score + α × graph_score
-         └── Return top-k
+  └─── Multi-hop retrieval  (relational queries only)
+         │
+         ├── Hop 1: retrieve with original query
+         │     └── LLM gap check: "is this enough to answer?"
+         │           ├── Yes → done
+         │           └── No  → generate follow-up question
+         ├── Hop 2: retrieve with follow-up question
+         │     └── LLM gap check …
+         └── … up to max_hops, deduplicating chunks across hops
 ```
 
 Each retrieved chunk is tagged with its retrieval type in the output:
@@ -25,8 +40,17 @@ Each retrieved chunk is tagged with its retrieval type in the output:
 | Type | Meaning |
 |---|---|
 | `hybrid` | Found by vector and/or BM25 search |
-| `hybrid+graph` | Found by vector/BM25 and additionally boosted by the graph score |
+| `hybrid+graph` | Found by vector/BM25 and boosted by the graph score |
 | `graph` | Not found by vector or BM25 — surfaced only via knowledge graph traversal |
+
+Query routing adjusts retrieval settings per query type:
+
+| Query type | Example | top_k multiplier | graph_alpha | Multi-hop |
+|---|---|---|---|---|
+| `factual` | "What is the API rate limit?" | 1× | 0.2 | No |
+| `comparative` | "Compare Starter vs Professional vs Enterprise" | 2× | 0.3 | No |
+| `relational` | "How does employee training connect to customer support?" | 1.5× | 0.5 | Yes |
+| `summarisation` | "Summarise all pricing options" | 2× | 0.2 | No |
 
 ## Setup
 
@@ -63,8 +87,11 @@ rag-app/
 │   ├── main.py                 # Entry point and RAGSystem class
 │   ├── embeddings/
 │   │   └── embedding_handler.py    # Sentence-transformer embeddings
+│   ├── router/
+│   │   └── query_router.py         # LLM query classifier with heuristic fallback
 │   ├── retriever/
-│   │   └── document_retriever.py   # Hybrid retriever: vector + BM25 + graph + RRF
+│   │   ├── document_retriever.py   # Hybrid retriever: vector + BM25 + graph + RRF
+│   │   └── multi_hop.py            # Iterative retrieve → gap-check → re-retrieve loop
 │   ├── graph/
 │   │   └── knowledge_graph.py      # Entity co-occurrence graph and BFS traversal
 │   ├── generator/
@@ -72,7 +99,8 @@ rag-app/
 │   └── utils/
 │       └── helpers.py              # Document loading and word-boundary chunker
 └── tests/
-    └── test_retriever.py
+    ├── test_retriever.py
+    └── test_router.py
 ```
 
 ## Configuration
@@ -93,9 +121,21 @@ llm:
   max_tokens: 500
 
 retrieval:
-  top_k: 7         # Increase for multi-faceted questions spanning many chunks
-  rrf_k: 60        # RRF constant — higher = smoother rank blending
-  graph_hops: 1    # BFS depth from seed chunks into the knowledge graph
+  top_k: 7             # Base value — scaled by router's top_k_multiplier
+  rrf_k: 60            # RRF constant — higher = smoother rank blending
+  graph_hops: 1        # BFS depth from seed chunks into the knowledge graph
+
+# Query router — classifies each query and adjusts retrieval settings
+routing:
+  enabled: true
+  model: "gpt-3.5-turbo"   # Use gpt-4o-mini for cheaper/faster classification
+
+# Multi-hop retrieval — iterative retrieve → gap-check → re-retrieve loop
+# Only fires when the router classifies a query as "relational"
+multi_hop:
+  enabled: true
+  max_hops: 3               # Maximum retrieval iterations
+  model: "gpt-3.5-turbo"
 
 chunking:
   chunk_size: 500  # Characters per chunk (word-boundary aligned)

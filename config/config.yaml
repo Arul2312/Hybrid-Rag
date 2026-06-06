@@ -14,12 +14,22 @@ llm:
   max_tokens: 500
 
 retrieval:
-  top_k: 7
-  # Reciprocal Rank Fusion constant (higher = smoother rank blending)
-  rrf_k: 60
-  # Graph traversal hops from top-k seed chunks
-  graph_hops: 1
+  top_k: 7             # Base value — scaled by router's top_k_multiplier
+  rrf_k: 60            # RRF constant — higher = smoother rank blending
+  graph_hops: 1        # BFS depth from seed chunks into the knowledge graph
 
 chunking:
   chunk_size: 500
   chunk_overlap: 50
+
+# Query router — classifies each query and adjusts retrieval settings
+routing:
+  enabled: true
+  model: "gpt-3.5-turbo"   # Can use gpt-4o-mini for cheaper/faster classification
+
+# Multi-hop retrieval — iterative retrieve → gap-check → re-retrieve loop
+# Only fires when the router classifies a query as "relational"
+multi_hop:
+  enabled: true
+  max_hops: 3               # Maximum retrieval iterations
+  model: "gpt-3.5-turbo"   # Model used for gap identification
