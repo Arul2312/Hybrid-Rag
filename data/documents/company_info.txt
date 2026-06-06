@@ -1,0 +1,261 @@
+Company Overview: TechVision Inc.
+
+TechVision Inc. is a leading technology company founded in 2015, specializing in artificial intelligence and machine learning solutions. Our headquarters is located in San Francisco, California, with additional offices in New York, London, and Tokyo.
+
+Mission Statement:
+Our mission is to democratize AI technology and make it accessible to businesses of all sizes. We believe that every company should have the power to leverage advanced AI capabilities to improve their operations and serve their customers better.
+
+Products and Services:
+
+1. AI Platform Suite
+Our flagship product is the AI Platform Suite, which includes:
+- Natural Language Processing tools
+- Computer Vision APIs
+- Predictive Analytics engine
+- AutoML capabilities for custom model training
+
+2. Cloud Infrastructure
+We provide scalable cloud infrastructure optimized for AI workloads, featuring:
+- GPU and TPU instances
+- Distributed training capabilities
+- Model deployment and monitoring tools
+- 99.9% uptime SLA
+
+3. Consulting Services
+Our expert team offers:
+- AI strategy consulting
+- Custom model development
+- Integration support
+- Training and workshops
+
+Company Values:
+- Innovation: We constantly push the boundaries of what's possible with AI
+- Transparency: We believe in explainable AI and ethical practices
+- Collaboration: We work closely with our clients to understand their unique needs
+- Excellence: We maintain the highest standards in everything we do
+
+Recent Achievements:
+- 2024: Named "AI Company of the Year" by Tech Innovation Awards
+- 2023: Reached 10,000+ enterprise customers worldwide
+- 2023: Launched our open-source AI toolkit with 50,000+ GitHub stars
+- 2022: Secured $200M in Series C funding
+
+Leadership Team:
+- CEO: Sarah Chen - Former VP of AI at Google
+- CTO: Michael Rodriguez - PhD in Computer Science from MIT
+- CFO: Jennifer Liu - Former CFO of CloudTech Solutions
+- Head of Research: Dr. James Patterson - Published 50+ papers on deep learning
+
+Contact Information:
+Email: info@techvision.com
+Phone: +1 (555) 123-4567
+Website: www.techvision.com
+Address: 123 Innovation Drive, San Francisco, CA 94105
+
+Customer Support:
+We offer 24/7 customer support through:
+- Live chat on our website
+- Email support with response time under 2 hours
+- Phone support for enterprise customers
+- Dedicated account managers for premium plans
+
+Pricing:
+- Starter Plan: $99/month - Perfect for small businesses and startups
+- Professional Plan: $499/month - For growing companies with moderate AI needs
+- Enterprise Plan: Custom pricing - Tailored solutions for large organizations
+
+Our commitment to customer success has made us the trusted AI partner for companies ranging from startups to Fortune 500 enterprises.
+
+TechVision Inc. Employee Handbook
+
+Welcome to TechVision Inc.!
+
+This handbook provides important information about company policies, benefits, and guidelines for all employees.
+
+Work Hours and Schedule:
+- Standard work hours: 9:00 AM - 5:00 PM, Monday through Friday
+- Flexible work arrangements available with manager approval
+- Remote work options: Employees can work remotely up to 3 days per week
+- Core hours: All employees should be available 10:00 AM - 3:00 PM for meetings
+
+Compensation and Benefits:
+
+Salary:
+- Competitive salaries based on experience and market rates
+- Annual performance reviews with potential for raises
+- Quarterly bonus opportunities based on company and individual performance
+
+Health Insurance:
+- Comprehensive medical, dental, and vision coverage
+- Company covers 80% of premium costs for employees
+- Coverage extends to spouse and dependents
+- Health Savings Account (HSA) available
+
+Retirement:
+- 401(k) plan with 5% company match
+- Immediate vesting for all contributions
+- Financial planning resources available
+
+Paid Time Off:
+- 20 days of vacation per year (increases with tenure)
+- 10 sick days per year
+- 12 company holidays
+- Unlimited bereavement leave
+- Parental leave: 16 weeks paid for primary caregiver, 8 weeks for secondary
+
+Professional Development:
+- $2,000 annual learning budget per employee
+- Access to online learning platforms (Coursera, Udemy, LinkedIn Learning)
+- Conference attendance support
+- Internal training programs and workshops
+- Tuition reimbursement for relevant degree programs
+
+Office Perks:
+- Free breakfast and lunch in office cafeteria
+- Fully stocked kitchen with snacks and beverages
+- Standing desks and ergonomic chairs
+- Gym membership reimbursement ($100/month)
+- Monthly team building activities
+- Game room with ping pong and video games
+
+Technology:
+- MacBook Pro or equivalent PC provided
+- Choice of additional monitor(s)
+- Wireless mouse and keyboard
+- Headphones for focused work
+- $500 home office setup stipend for remote workers
+
+Dress Code:
+- Business casual attire
+- Casual dress on Fridays
+- Professional attire required for client meetings
+- Company-branded apparel provided quarterly
+
+Communication Policies:
+- Use Slack for internal communication
+- Email for formal correspondence and external communication
+- Video calls via Zoom for remote meetings
+- Response time expectations: Within 24 hours for emails, 4 hours for Slack during work hours
+
+Performance Reviews:
+- Quarterly check-ins with direct manager
+- Annual comprehensive performance review
+- 360-degree feedback process
+- Clear goal setting and tracking
+
+Career Growth:
+- Internal job postings shared company-wide
+- Mentorship program pairing junior and senior employees
+- Leadership development programs
+- Clear career progression paths
+
+Code of Conduct:
+- Treat all colleagues with respect and professionalism
+- Zero tolerance for harassment or discrimination
+- Maintain confidentiality of company and client information
+- Follow all security protocols and best practices
+- Report any concerns to HR immediately
+
+Equal Opportunity:
+TechVision Inc. is an equal opportunity employer. We celebrate diversity and are committed to creating an inclusive environment for all employees regardless of race, gender, age, religion, sexual orientation, or disability.
+
+Questions or Concerns:
+Please contact the HR department at hr@techvision.com or visit us at office suite 200.
+
+Last Updated: January 2025
+
+TechVision AI Platform - Frequently Asked Questions
+
+General Questions:
+
+Q: What is the TechVision AI Platform?
+A: The TechVision AI Platform is a comprehensive suite of artificial intelligence tools and services designed to help businesses integrate AI capabilities into their applications. It includes natural language processing, computer vision, predictive analytics, and automated machine learning features.
+
+Q: Who can use the TechVision AI Platform?
+A: Our platform is designed for businesses of all sizes, from startups to enterprise organizations. Whether you're a developer, data scientist, or business analyst, our tools are built to be accessible and powerful.
+
+Q: Do I need machine learning expertise to use your platform?
+A: No! While machine learning knowledge is helpful, our platform includes AutoML features that automate much of the complex work. We also provide extensive documentation, tutorials, and support to help you get started.
+
+Technical Questions:
+
+Q: What programming languages are supported?
+A: Our platform provides SDKs for Python, JavaScript, Java, and Go. We also offer REST APIs that can be used with any programming language.
+
+Q: How do I integrate the platform with my existing application?
+A: Integration is simple using our APIs and SDKs. Most developers can complete a basic integration in under an hour. We provide quickstart guides for popular frameworks like React, Django, and Spring Boot.
+
+Q: What is the API rate limit?
+A: Rate limits depend on your plan:
+- Starter: 100 requests per minute
+- Professional: 1,000 requests per minute
+- Enterprise: Custom limits based on your needs
+
+Q: Can I deploy models on-premises?
+A: Yes, enterprise customers can deploy models on-premises or in their own cloud environment. Contact our sales team for more information.
+
+Q: What data formats are supported?
+A: We support JSON, CSV, and various image formats (JPEG, PNG, TIFF) for computer vision tasks. Audio files in WAV and MP3 formats are supported for speech recognition.
+
+Pricing and Billing:
+
+Q: How does pricing work?
+A: We offer tiered pricing based on usage:
+- Starter Plan: $99/month for up to 10,000 API calls
+- Professional Plan: $499/month for up to 100,000 API calls
+- Enterprise Plan: Custom pricing for high-volume usage
+
+Q: Is there a free trial?
+A: Yes! We offer a 14-day free trial with access to all features. No credit card required to start.
+
+Q: What happens if I exceed my plan limits?
+A: You'll receive email notifications at 75% and 90% of your limit. Once exceeded, API calls will be throttled unless you upgrade your plan. No overage charges without your approval.
+
+Q: Can I change my plan at any time?
+A: Yes, you can upgrade or downgrade your plan at any time. Changes take effect immediately for upgrades and at the next billing cycle for downgrades.
+
+Security and Compliance:
+
+Q: How is my data secured?
+A: We use industry-standard encryption (AES-256) for data at rest and TLS 1.3 for data in transit. All data is stored in SOC 2 Type II certified data centers.
+
+Q: Is the platform GDPR compliant?
+A: Yes, we are fully GDPR compliant. We provide data processing agreements and tools for managing user data according to GDPR requirements.
+
+Q: Do you use my data to train your models?
+A: No, we never use customer data to train our models unless explicitly agreed upon in writing. Your data remains your data.
+
+Q: Where is data stored?
+A: We have data centers in the US, EU, and Asia. You can choose where your data is stored during account setup.
+
+Performance and Reliability:
+
+Q: What is your uptime guarantee?
+A: We guarantee 99.9% uptime for all paid plans, with full refunds for any downtime beyond this threshold.
+
+Q: How fast are API responses?
+A: Average response times are under 200ms for most API calls. Complex operations like model training may take longer.
+
+Q: Can the platform handle traffic spikes?
+A: Yes, our infrastructure auto-scales to handle traffic spikes. Enterprise customers can also pre-warm capacity for planned events.
+
+Support Questions:
+
+Q: What support options are available?
+A: All customers have access to:
+- Email support with 24-hour response time
+- Documentation and tutorials
+- Community forum
+
+Professional and Enterprise customers also receive:
+- Priority email support (2-hour response time)
+- Phone support
+- Dedicated account manager (Enterprise only)
+
+Q: Do you offer training for my team?
+A: Yes! We offer online training courses and can arrange custom training sessions for Enterprise customers.
+
+Q: How do I report a bug or request a feature?
+A: You can report bugs or request features through our support portal, email, or community forum. We actively review all feedback.
+
+For more questions, visit our documentation at docs.techvision.com or contact support at support@techvision.com.
