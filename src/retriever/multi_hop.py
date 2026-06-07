@@ -7,13 +7,16 @@ GAP_PROMPT = """You are helping a retrieval system decide whether to fetch more 
 
 Original question: {query}
 
-Context retrieved so far ({n_chunks} chunks):
+Top relevant context retrieved so far ({n_chunks} chunks total, showing most relevant):
 {context}
+
+Previously asked follow-up questions (do NOT repeat any of these):
+{asked}
 
 Does this context contain enough information to fully answer the original question?
 
 If YES:  {{"sufficient": true, "follow_up": null}}
-If NO:   {{"sufficient": false, "follow_up": "<the single most important follow-up question>"}}
+If NO:   {{"sufficient": false, "follow_up": "<a NEW follow-up question not in the list above>"}}
 
 Respond with JSON only — no markdown, no explanation."""
 
@@ -33,9 +36,14 @@ class MultiHopRetriever:
     Pipeline per hop:
       1. Retrieve chunks for the current sub-query.
       2. Merge new chunks into the accumulated context (deduplicating by ID).
-      3. Ask the LLM whether the accumulated context is sufficient.
-      4. If not, use the LLM-generated follow-up question as the next sub-query.
-      5. Repeat up to max_hops times.
+      3. Sort accumulated context by relevance score.
+      4. Ask the LLM (showing top-8 by relevance) whether context is sufficient.
+      5. If not, use the LLM-generated follow-up question as the next sub-query.
+         Previously asked questions are shown to prevent repetition.
+      6. Repeat up to max_hops times.
+
+    Returns deduplicated chunks sorted by final_score so callers can safely
+    slice the top-N for the generator.
     """
 
     def __init__(self, retriever, model: str = "gpt-3.5-turbo", max_hops: int = 3):
@@ -54,8 +62,8 @@ class MultiHopRetriever:
         Run iterative retrieval.
 
         Returns:
-          all_chunks  — deduplicated list of chunks across all hops
-          hop_trace   — sub-questions generated at each hop (empty if one hop sufficed)
+          all_chunks  — deduplicated chunks sorted by final_score (best first)
+          hop_trace   — sub-questions asked at each hop (empty if one hop sufficed)
         """
         all_chunks: List[Dict] = []
         seen_ids: set = set()
@@ -74,9 +82,17 @@ class MultiHopRetriever:
                 seen_ids.add(c["id"])
             all_chunks.extend(new_chunks)
 
+            # Keep accumulated context sorted by relevance for gap-check and callers
+            all_chunks.sort(key=lambda c: c.get("final_score", 0.0), reverse=True)
+
             print(f"           → {len(new_chunks)} new chunk(s)  (total: {len(all_chunks)})")
 
-            follow_up = self._identify_gap(query, all_chunks)
+            # Stop early if this hop added nothing new
+            if not new_chunks and hop > 0:
+                print("           → no new chunks; stopping early")
+                break
+
+            follow_up = self._identify_gap(query, all_chunks, asked=hop_trace)
             if follow_up is None:
                 break
 
@@ -85,16 +101,24 @@ class MultiHopRetriever:
 
         return all_chunks, hop_trace
 
-    def _identify_gap(self, original_query: str, context: List[Dict]) -> Optional[str]:
+    def _identify_gap(
+        self,
+        original_query: str,
+        context: List[Dict],
+        asked: List[str] = None,
+    ) -> Optional[str]:
         """
-        Ask the LLM whether the accumulated context is sufficient.
-        Returns a follow-up question string, or None if context is sufficient.
+        Show the top-8 most relevant chunks (already sorted) to the LLM and ask
+        whether they are sufficient to answer the original query.
+        Returns a follow-up question, or None if the context is sufficient.
         """
-        # Truncate each chunk so the prompt stays within token budget
+        # context is pre-sorted by final_score; show the most relevant 8
         context_text = "\n\n".join(
             f"[{i + 1}] (source: {c['metadata'].get('source', '?')}) {c['document'][:350]}"
-            for i, c in enumerate(context[:10])
+            for i, c in enumerate(context[:8])
         )
+
+        asked_text = "\n".join(f"- {q}" for q in asked) if asked else "None"
 
         try:
             response = self.client.chat.completions.create(
@@ -106,6 +130,7 @@ class MultiHopRetriever:
                             query=original_query,
                             n_chunks=len(context),
                             context=context_text,
+                            asked=asked_text,
                         ),
                     }
                 ],
@@ -116,6 +141,9 @@ class MultiHopRetriever:
             if result.get("sufficient"):
                 return None
             follow_up = result.get("follow_up")
+            # Guard: if the LLM returns a question identical to a prior one, stop
+            if follow_up and asked and follow_up.strip() in [q.strip() for q in asked]:
+                return None
             return follow_up if follow_up else None
         except Exception:
-            return None  # treat parse/API failures as "sufficient" to avoid loops
+            return None

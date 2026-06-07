@@ -116,9 +116,12 @@ class RAGSystem:
 
         if use_multi_hop:
             print("Multi-hop retrieval:")
-            retrieved_docs, hop_trace = self.multi_hop.retrieve(
+            all_docs, hop_trace = self.multi_hop.retrieve(
                 question, top_k=top_k, graph_alpha=graph_alpha
             )
+            # Chunks come back sorted by final_score; cap at top_k for the generator
+            # so it receives a focused, ranked set rather than every chunk seen
+            retrieved_docs = all_docs[:top_k]
         else:
             retrieved_docs = self.retriever.retrieve(
                 question, top_k=top_k, graph_alpha=graph_alpha
