@@ -119,9 +119,11 @@ class RAGSystem:
             all_docs, hop_trace = self.multi_hop.retrieve(
                 question, top_k=top_k, graph_alpha=graph_alpha
             )
-            # Chunks come back sorted by final_score; cap at top_k for the generator
-            # so it receives a focused, ranked set rather than every chunk seen
-            retrieved_docs = all_docs[:top_k]
+            # Chunks come back sorted by final_score.
+            # Give 2 extra slots per hop so evidence retrieved by targeted sub-questions
+            # isn't crowded out by higher-scoring but less specific chunks from hop 1.
+            gen_cap = min(top_k + len(hop_trace) * 2, len(all_docs))
+            retrieved_docs = all_docs[:gen_cap]
         else:
             retrieved_docs = self.retriever.retrieve(
                 question, top_k=top_k, graph_alpha=graph_alpha

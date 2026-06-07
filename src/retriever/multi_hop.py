@@ -92,12 +92,13 @@ class MultiHopRetriever:
                 print("           → no new chunks; stopping early")
                 break
 
-            follow_up = self._identify_gap(query, all_chunks, asked=hop_trace)
-            if follow_up is None:
-                break
-
-            hop_trace.append(follow_up)
-            current_query = follow_up
+            # Only check for a gap if there are hops remaining to use the result
+            if hop < self.max_hops - 1:
+                follow_up = self._identify_gap(query, all_chunks, asked=hop_trace)
+                if follow_up is None:
+                    break
+                hop_trace.append(follow_up)
+                current_query = follow_up
 
         return all_chunks, hop_trace
 
