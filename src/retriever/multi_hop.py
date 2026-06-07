@@ -100,7 +100,50 @@ class MultiHopRetriever:
                 hop_trace.append(follow_up)
                 current_query = follow_up
 
+        # Final re-rank: blend hop-specific scores with vector similarity to
+        # the ORIGINAL query so that evidence found by targeted sub-questions
+        # is fairly compared against evidence from hop 1.
+        all_chunks = self._rerank_by_original_query(query, all_chunks)
+
         return all_chunks, hop_trace
+
+    def _rerank_by_original_query(self, query: str, chunks: List[Dict]) -> List[Dict]:
+        """
+        Re-score accumulated chunks using vector similarity to the original query.
+        Corrects for hop-specific score bias when chunks were retrieved against
+        different sub-queries.
+        Final score = 0.5 × normalised_hop_score + 0.5 × normalised_vector_rank_score
+        """
+        if len(chunks) <= 1:
+            return chunks
+        try:
+            q_emb = self.retriever.embedding_handler.encode_query(query)
+            q_emb_list = q_emb.tolist() if hasattr(q_emb, "tolist") else q_emb
+
+            # Query the collection for all items so we get original-query ranks
+            n = min(self.retriever.collection.count(), len(chunks) + 20)
+            results = self.retriever.collection.query(
+                query_embeddings=[q_emb_list],
+                n_results=n,
+            )
+            # Lower rank index = more similar to original query
+            vector_rank: Dict[str, int] = {
+                doc_id: rank for rank, doc_id in enumerate(results["ids"][0])
+            }
+
+            # Normalise hop scores to [0, 1]
+            scores = [c.get("final_score", 0.0) for c in chunks]
+            max_s = max(scores) or 1.0
+
+            for chunk in chunks:
+                norm_hop = chunk.get("final_score", 0.0) / max_s
+                vrank = vector_rank.get(chunk["id"], n)
+                norm_vec = 1.0 / (1.0 + vrank)   # rank 0 → 1.0, rank n → ~0
+                chunk["final_score"] = 0.5 * norm_hop + 0.5 * norm_vec
+
+            return sorted(chunks, key=lambda c: c["final_score"], reverse=True)
+        except Exception:
+            return chunks  # leave unchanged on any failure
 
     def _identify_gap(
         self,
